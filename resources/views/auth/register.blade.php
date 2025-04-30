@@ -30,10 +30,18 @@
 @section("content")
     <main class="form-signin w-100 m-auto">
 
-        <form method="POST" action="{{route('login.post')}}">
+        <form method="POST" action="{{route('register.post')}}">
             @csrf
             <img src="" alt="">
-            <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+            <h1 class="h3 mb-3 fw-normal">Please signup</h1>
+
+            <div class="form-floating">
+                <input type="text" name="name" class="form-control" id="floatingInput">
+                <label for="floatingInput">name</label>
+                @error('name')
+                <span class="text-danger">{{message}}</span>
+                @enderror
+            </div>
 
             <div class="form-floating">
                 <input type="email" name="email" class="form-control" id="floatingInput">
@@ -51,11 +59,6 @@
                 @enderror
             </div>
 
-            <div class="form-check text-start my-3">
-                <input type="checkbox" name="rememberme" class="form-check-input" id="flexCheckDefault" value="remember-me">
-                <label class="form-check-label" for="flexCheckDefault">Remember me</label>
-            </div>
-
             @if(session()->has("success"))
                 <div class="alert alert-success">
                     {{session()->get("success")}}
@@ -69,9 +72,9 @@
             @endif
 
             <button class="btn btn-primary w-100 py-2" type="submit">
-                Sign in
+                Sign Up
             </button>
-            <a href="{{route('register')}}" class="text-center">Create new account</a>
+            <a href="{{route('login')}}" class="text-center">Login Here</a>
 
         </form>
     </main>
