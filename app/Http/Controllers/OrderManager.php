@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use http\Exception\UnexpectedValueException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Stripe\Exception\SignatureVerificationException;
 use Stripe\StripeClient;
+use Stripe\Webhook;
 
 class OrderManager extends Controller
 {
@@ -100,6 +103,44 @@ class OrderManager extends Controller
    public function paymentError()
    {
       return "error";
+   }
+
+   public function webHookStripe(Request $request)
+   {
+       $endpoint_secret = config("app.STRIPE_WEBHOOK_SECRET");
+       $payload = $request->getContent();
+       $sig_header = $request->header('Stripe_Signature');
+//       $event = null;
+
+       try {
+           $event = Webhook::constructEvent(
+               $payload, $sig_header, $endpoint_secret
+           );
+       } catch(UnexpectedValueException $e) {
+
+           http_response_code(400);
+           exit();
+       } catch(SignatureVerificationException $e) {
+
+           http_response_code(400);
+           exit();
+       }
+
+       if ($event->type == 'checkout.session.completed'){
+           $session = $event->data->object;
+           $orderId = $session->metadata->order_id;
+           $paymentId = $session->payment_intent;
+
+           $order = Order::find($orderId);
+           if ($order){
+               $order->payment_id = $paymentId;
+               $order->status = 'completed';
+               $order->save();
+           }
+
+       }
+
+      return response()->json(['status'=>'success'], 200);
    }
 
 }
